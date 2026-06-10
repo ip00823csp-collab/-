@@ -3,8 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
-const AUDIO_CDN = "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/audio";
-
 interface SoundOption {
   id: string;
   name: string;
@@ -21,7 +19,7 @@ const sounds: SoundOption[] = [
     emoji: "🌧️",
     description: "淅淅沥沥的小雨",
     bgGradient: "from-blue-50 to-blue-100",
-    src: `${AUDIO_CDN}/rain.mp3`,
+    src: "/audio/rain.mp3",
   },
   {
     id: "bird",
@@ -29,7 +27,7 @@ const sounds: SoundOption[] = [
     emoji: "🐦",
     description: "清晨的鸟叫声",
     bgGradient: "from-green-50 to-green-100",
-    src: `${AUDIO_CDN}/birds.mp3`,
+    src: "/audio/birds.mp3",
   },
   {
     id: "stream",
@@ -37,7 +35,7 @@ const sounds: SoundOption[] = [
     emoji: "🏞️",
     description: "潺潺的流水声",
     bgGradient: "from-cyan-50 to-cyan-100",
-    src: `${AUDIO_CDN}/ocean.mp3`,
+    src: "/audio/ocean.mp3",
   },
   {
     id: "night",
@@ -45,7 +43,7 @@ const sounds: SoundOption[] = [
     emoji: "🌙",
     description: "安静的夏夜",
     bgGradient: "from-indigo-50 to-indigo-100",
-    src: `${AUDIO_CDN}/night.mp3`,
+    src: "/audio/night.mp3",
   },
   {
     id: "wind",
@@ -53,7 +51,7 @@ const sounds: SoundOption[] = [
     emoji: "🍃",
     description: "轻柔的风声",
     bgGradient: "from-emerald-50 to-emerald-100",
-    src: `${AUDIO_CDN}/wind.mp3`,
+    src: "/audio/wind.mp3",
   },
   {
     id: "fireplace",
@@ -61,7 +59,7 @@ const sounds: SoundOption[] = [
     emoji: "🔥",
     description: "温暖的壁炉",
     bgGradient: "from-orange-50 to-red-100",
-    src: `${AUDIO_CDN}/fireplace.mp3`,
+    src: "/audio/fireplace.mp3",
   },
 ];
 

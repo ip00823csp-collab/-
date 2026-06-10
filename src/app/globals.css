@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-warm-bg text-stone-800 font-display;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* 大字体模式 */
+  .font-large {
+    font-size: 120%;
+  }
+
+  .font-xlarge {
+    font-size: 140%;
+  }
+}
+
+@layer components {
+  /* 温暖卡片按钮 */
+  .warm-card {
+    @apply rounded-4xl shadow-lg transition-all duration-300;
+    @apply active:scale-95 active:shadow-md;
+    @apply hover:shadow-xl hover:-translate-y-1;
+  }
+
+  /* 功能卡片 */
+  .feature-card {
+    @apply warm-card flex flex-col items-center justify-center p-6 min-h-[140px];
+    @apply cursor-pointer select-none;
+  }
+
+  /* 圆形图标按钮 */
+  .circle-btn {
+    @apply w-16 h-16 rounded-full flex items-center justify-center;
+    @apply shadow-md transition-all duration-200;
+    @apply active:scale-90;
+  }
+
+  /* 聊天气泡 - 用户 */
+  .chat-bubble-user {
+    @apply bg-orange-100 rounded-3xl rounded-br-lg px-5 py-3;
+    @apply text-stone-800 text-elder;
+  }
+
+  /* 聊天气泡 - 小暖 */
+  .chat-bubble-companion {
+    @apply bg-white rounded-3xl rounded-bl-lg px-5 py-3;
+    @apply text-stone-700 text-elder shadow-sm;
+  }
+
+  /* 温暖渐变背景 */
+  .gradient-warm {
+    background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 50%, #FFCC80 100%);
+  }
+
+  .gradient-sunrise {
+    background: linear-gradient(180deg, #FFF8E1 0%, #FFE0B2 50%, #FFCC80 100%);
+  }
+
+  .gradient-sunset {
+    background: linear-gradient(180deg, #FFF3E0 0%, #F8BBD0 50%, #CE93D8 100%);
+  }
+
+  .gradient-night {
+    background: linear-gradient(180deg, #E8EAF6 0%, #C5CAE9 50%, #9FA8DA 100%);
+  }
+
+  /* 呼吸动画圆圈 */
+  .breathe-circle {
+    @apply rounded-full;
+    background: radial-gradient(circle, rgba(255, 183, 77, 0.3) 0%, rgba(255, 152, 0, 0.1) 70%, transparent 100%);
+    border: 3px solid rgba(255, 152, 0, 0.3);
+  }
+
+  /* 底部安全区域 */
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  /* 顶部安全区域 */
+  .safe-top {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+}
+
+@layer utilities {
+  .text-shadow-warm {
+    text-shadow: 0 2px 4px rgba(255, 152, 0, 0.15);
+  }
+}

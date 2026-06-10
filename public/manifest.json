@@ -1,0 +1,11 @@
+{
+  "name": "心晴 - 温暖的陪伴",
+  "short_name": "心晴",
+  "description": "专为长辈设计的心理疗愈与温暖陪伴应用",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF9F2",
+  "theme_color": "#FFF3E0",
+  "orientation": "portrait",
+  "lang": "zh-CN"
+}

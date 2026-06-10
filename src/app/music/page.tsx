@@ -3,16 +3,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
+const AUDIO_CDN = "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/audio";
+
 interface SoundOption {
   id: string;
   name: string;
   emoji: string;
   description: string;
   bgGradient: string;
-  // Web Audio API 配置
-  frequencies: number[];
-  type: OscillatorType;
-  interval: number; // ms between notes
+  src: string;
 }
 
 const sounds: SoundOption[] = [
@@ -22,9 +21,7 @@ const sounds: SoundOption[] = [
     emoji: "🌧️",
     description: "淅淅沥沥的小雨",
     bgGradient: "from-blue-50 to-blue-100",
-    frequencies: [0], // 白噪音
-    type: "sine",
-    interval: 100,
+    src: `${AUDIO_CDN}/rain.mp3`,
   },
   {
     id: "bird",
@@ -32,9 +29,7 @@ const sounds: SoundOption[] = [
     emoji: "🐦",
     description: "清晨的鸟叫声",
     bgGradient: "from-green-50 to-green-100",
-    frequencies: [800, 1000, 1200, 900, 1100, 850, 1050],
-    type: "sine",
-    interval: 600,
+    src: `${AUDIO_CDN}/birds.mp3`,
   },
   {
     id: "stream",
@@ -42,9 +37,7 @@ const sounds: SoundOption[] = [
     emoji: "🏞️",
     description: "潺潺的流水声",
     bgGradient: "from-cyan-50 to-cyan-100",
-    frequencies: [200, 250, 300, 280, 220, 260],
-    type: "sine",
-    interval: 200,
+    src: `${AUDIO_CDN}/ocean.mp3`,
   },
   {
     id: "night",
@@ -52,9 +45,7 @@ const sounds: SoundOption[] = [
     emoji: "🌙",
     description: "安静的夏夜",
     bgGradient: "from-indigo-50 to-indigo-100",
-    frequencies: [400, 420, 380, 410, 390, 430],
-    type: "sine",
-    interval: 800,
+    src: `${AUDIO_CDN}/night.mp3`,
   },
   {
     id: "wind",
@@ -62,90 +53,36 @@ const sounds: SoundOption[] = [
     emoji: "🍃",
     description: "轻柔的风声",
     bgGradient: "from-emerald-50 to-emerald-100",
-    frequencies: [0],
-    type: "triangle",
-    interval: 150,
+    src: `${AUDIO_CDN}/wind.mp3`,
   },
   {
-    id: "piano",
-    name: "琴声",
-    emoji: "🎹",
-    description: "轻柔的钢琴音",
-    bgGradient: "from-purple-50 to-purple-100",
-    frequencies: [262, 294, 330, 349, 392, 440, 349, 330, 294, 262],
-    type: "sine",
-    interval: 1000,
+    id: "fireplace",
+    name: "炉火",
+    emoji: "🔥",
+    description: "温暖的壁炉",
+    bgGradient: "from-orange-50 to-red-100",
+    src: `${AUDIO_CDN}/fireplace.mp3`,
   },
 ];
 
 export default function MusicPage() {
   const router = useRouter();
   const [playing, setPlaying] = useState<string | null>(null);
-  const [volume, setVolume] = useState(0.3);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const gainNodeRef = useRef<GainNode | null>(null);
-  const noiseNodeRef = useRef<AudioBufferSourceNode | null>(null);
+  const [volume, setVolume] = useState(0.5);
+  const [loading, setLoading] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const stopAll = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    if (noiseNodeRef.current) {
-      try { noiseNodeRef.current.stop(); } catch {}
-      noiseNodeRef.current = null;
-    }
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-      audioContextRef.current = null;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.src = "";
     }
     setPlaying(null);
+    setLoading(null);
   }, []);
 
-  const playWhiteNoise = (ctx: AudioContext, gain: GainNode, type: OscillatorType) => {
-    const bufferSize = 2 * ctx.sampleRate;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const output = buffer.getChannelData(0);
-
-    // 生成柔和的噪音
-    let lastOut = 0;
-    for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1;
-      // 低通滤波效果
-      output[i] = (lastOut + (white * 0.02)) / 1.02;
-      lastOut = output[i];
-      output[i] *= 3.5;
-    }
-
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-    source.connect(gain);
-    source.start();
-    noiseNodeRef.current = source;
-  };
-
-  const playTone = (ctx: AudioContext, gain: GainNode, freq: number, type: OscillatorType, duration: number) => {
-    const osc = ctx.createOscillator();
-    const noteGain = ctx.createGain();
-
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-
-    // 柔和的包络
-    noteGain.gain.setValueAtTime(0, ctx.currentTime);
-    noteGain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
-    noteGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration / 1000);
-
-    osc.connect(noteGain);
-    noteGain.connect(gain);
-
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + duration / 1000);
-  };
-
-  const playSound = (sound: SoundOption) => {
+  const playSound = useCallback((sound: SoundOption) => {
     if (playing === sound.id) {
       stopAll();
       return;
@@ -153,39 +90,32 @@ export default function MusicPage() {
 
     stopAll();
     setPlaying(sound.id);
+    setLoading(sound.id);
 
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    audioContextRef.current = ctx;
+    const audio = new Audio(sound.src);
+    audio.loop = true;
+    audio.volume = volume;
 
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(volume, ctx.currentTime);
-    masterGain.connect(ctx.destination);
-    gainNodeRef.current = masterGain;
+    audio.addEventListener("canplay", () => {
+      setLoading(null);
+      audio.play().catch(() => setLoading(null));
+    });
 
-    if (sound.frequencies[0] === 0) {
-      // 白噪音类
-      playWhiteNoise(ctx, masterGain, sound.type);
-    } else {
-      // 音调类
-      let noteIndex = 0;
-      const playNote = () => {
-        if (!audioContextRef.current) return;
-        const freq = sound.frequencies[noteIndex % sound.frequencies.length];
-        playTone(ctx, masterGain, freq, sound.type, sound.interval * 0.8);
-        noteIndex++;
-      };
+    audio.addEventListener("error", () => {
+      setLoading(null);
+    });
 
-      playNote();
-      intervalRef.current = setInterval(playNote, sound.interval);
-    }
-  };
+    audioRef.current = audio;
+  }, [playing, volume, stopAll]);
 
+  // 更新音量
   useEffect(() => {
-    if (gainNodeRef.current && audioContextRef.current) {
-      gainNodeRef.current.gain.setValueAtTime(volume, audioContextRef.current.currentTime);
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
     }
   }, [volume]);
 
+  // 清理
   useEffect(() => {
     return () => stopAll();
   }, [stopAll]);
@@ -220,6 +150,7 @@ export default function MusicPage() {
         <div className="grid grid-cols-2 gap-4 mb-8">
           {sounds.map((sound) => {
             const isPlaying = playing === sound.id;
+            const isLoading = loading === sound.id;
             return (
               <button
                 key={sound.id}
@@ -233,7 +164,13 @@ export default function MusicPage() {
                 <span className="text-5xl mb-2">{sound.emoji}</span>
                 <span className="text-elder-lg font-bold text-stone-700">{sound.name}</span>
                 <span className="text-sm text-stone-500">{sound.description}</span>
-                {isPlaying && (
+                {isLoading && (
+                  <div className="flex gap-1 mt-2">
+                    <div className="w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-sm text-orange-500">加载中</span>
+                  </div>
+                )}
+                {isPlaying && !isLoading && (
                   <div className="flex gap-1 mt-2">
                     {[1, 2, 3].map((i) => (
                       <div
